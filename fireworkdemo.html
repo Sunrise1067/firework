@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireworks Display</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworksCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Firework {
+            constructor(x, y, colors) {
+                this.x = x;
+                this.y = y;
+                this.colors = colors;
+                this.particles = [];
+                for (let i = 0; i < 150; i++) { // Increased particles for more realism
+                    this.particles.push(new Particle(this.x, this.y, this.colors));
+                }
+            }
+
+            update() {
+                this.particles.forEach((particle, index) => {
+                    particle.update();
+                    if (particle.opacity <= 0) {
+                        this.particles.splice(index, 1);
+                    }
+                });
+            }
+
+            draw() {
+                this.particles.forEach(particle => particle.draw());
+            }
+
+            isComplete() {
+                return this.particles.length === 0;
+            }
+        }
+
+        class Particle {
+            constructor(x, y, colors) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1; // Smaller size for realism
+                this.speedX = Math.random() * 6 - 3; 
+                this.speedY = Math.random() * 6 - 3; 
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.opacity = 1;
+                this.fadeRate = Math.random() * 0.015 + 0.005;
+                this.gravity = 0.05; // Gravity effect
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY + this.gravity;
+                this.opacity -= this.fadeRate;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+
+        let fireworks = [];
+
+        function createFirework(x, y) {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff6600', '#6600ff'];
+            fireworks.push(new Firework(x, y, colors));
+        }
+
+        function autoFireworks() {
+            setInterval(() => {
+                for (let i = 0; i < 3; i++) { // Multiple fireworks at the same time
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height / 2; // Fireworks originate from the upper half of the screen
+                    createFirework(x, y);
+                }
+            }, 200); // Fireworks every 200ms
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Slight trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            fireworks.forEach((firework, index) => {
+                firework.update();
+                firework.draw();
+                if (firework.isComplete()) {
+                    fireworks.splice(index, 1);
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        autoFireworks();
+        animate();
+    </script>
+</body>
+</html>
